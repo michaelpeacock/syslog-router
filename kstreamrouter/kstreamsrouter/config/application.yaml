@@ -1,0 +1,44 @@
+spring.cloud.stream:
+  function:
+    definition: dynamicRouteSyslogMessages
+    bindings:
+      dynamicRouteSyslogMessages-in-0: kstreams.test.input
+
+  kafka:
+    streams:
+      binder:
+        applicationId: ks-rcc-router-app
+        deserializationExceptionHandler: logAndContinue
+        configuration:
+          spring.json.trusted.packages: "*"
+          commit.interval.ms: 2000
+          state.dir: state-store
+          default:
+            security:
+              protocol: SSL
+              ssl:
+                truststore:
+                  location: c:/tmp/kstreams/confluent-dev/kafkaclient-truststore.jks
+                  password: mystorepassword
+                  type: JKS
+              keystore:
+                location: c:/tmp/kstreams/confluent-dev/kafkaclient-keystore.jks
+                password: mystorepassword
+        brokers: localhost:9092
+
+logging:
+  level:
+    #org.springframework: debug
+    mil:
+      army:
+        rcc:
+          kstreamrouter: DEBUG
+
+
+properties:
+  sasl:
+    jaas:
+      config: org.apache.kafka.common.security.scram.ScramLoginModule required username=<scram user> password=<scram password>;
+    mechanism: SCRAM-SHA-512
+    security:
+      protocol: SASL_SSL
