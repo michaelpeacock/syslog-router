@@ -21,7 +21,7 @@ spring.cloud.stream:
   kafka:
     streams:
       binder:
-        applicationId: ks-rcc-router-app
+        applicationId: ks-syslog-router-app
         deserializationExceptionHandler: logAndContinue
         configuration:
           spring.json.trusted.packages: "*"
@@ -48,13 +48,6 @@ spring.cloud.stream:
 
 
 
-logging:
-  level:
-    #org.springframework: debug
-    mil:
-      army:
-        rcc:
-          kstreamrouter: DEBUG
 
 
 
@@ -65,8 +58,8 @@ logging:
 spring.config:
   activate:
     on-profile: prod
-name: rcce-kstreamrouter-prod-YAML
-environment: rcce-kstreamrouter-prod
+name: syslog-kstreamrouter-prod-YAML
+environment: syslog-kstreamrouter-prod
 enabled: true
 
 
@@ -81,7 +74,7 @@ spring.cloud.stream:
   kafka:
     streams:
       binder:
-        applicationId: ks-rcce-router-app
+        applicationId: ks-syslog-router-app
         deserializationExceptionHandler: logAndContinue
         configuration:
           ##num.stream.threads: 1
@@ -107,10 +100,3 @@ spring.cloud.stream:
 
 
 
-logging:
-  level:
-    #org.springframework: debug
-    mil:
-      army:
-        rcce:
-          kstreamrouter: INFO

@@ -1,11 +1,11 @@
 custom:
   customFields:
     -
-      name: "rccName"
-      value: "RCC-K"
+      name: "name"
+      value: "My Name"
     -
-      name: "siteName"
-      value: "Walker"
+      name: "site"
+      value: "My Site"
 
 routing:
   default:

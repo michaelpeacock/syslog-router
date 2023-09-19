@@ -1,31 +1,31 @@
 custom:
   customFields:
     -
-      name: "rccName"
-      value: "RCC-E"
+      name: "name"
+      value: "My Name"
     -
-      name: "siteName"
-      value: "Kaiserslautern"
+      name: "site"
+      value: "My Site"
 
 routing:
   default:
-    topic: rcc.log.syslog.default
+    topic: syslog.default
   rules:
     -
       regEx: ".*,TRAFFIC,\\w+.*"
-      outputTopic: "rcc.log.route1"
+      outputTopic: "syslog.route1"
     -
       regEx: ".*\\S+\\s\\d{10}\\s.+?\\d{10}\\s\\d{5}\\s(?:FATAL|NOTICE|DEBUG|INFO|WARN(?:ING)?|ERR(?:OR)?|WARN|CRITICAL).*"
-      outputTopic: "rcc.log.ciscoise.out"
+      outputTopic: "syslog.ciscoise.out"
     -
       regEx: ".*(?:Local\\sgateway.+Remote\\sgateway|OSPF\\sneighbor.+realm|IKE negotiation|VPN\\s\\S+\\sfrom.+is\\s(?:up|down)|DPD\\sdetected\\speer).*"
-      outputTopic: "rcc.log.juniper.out"
+      outputTopic: "syslog.juniper.out"
     -
       regEx: ".*%ASA.*"
-      outputTopic: "rcc.log.ciscoasa.out"
+      outputTopic: "syslog.ciscoasa.out"
     -
       regEx: ".*(?:f5_asm|Cannot\\sload\\suser\\scredentials|f5_afm|f5_irule|Hostname=.+,SlotId=.+errdefs_msgno|Pool.+now has|SSL Handshake failed for (?:TCP|UDP)|SNMP Trap:.*has become|SNMP_TRAP|Connection error:.*alert\\(\\d+\\)|icrd_child|AUDIT\\s\\-\\s|Virtual Address.*status|No members available for pool|Pool.*member.*status|DoS Auto Ratelimit Threshold|Sync of device group).*"
-      outputTopic: "rcc.log.f5asm.out"
+      outputTopic: "syslog.f5asm.out"
     -
       regEx: ".*(?:%FMANFP|%SESSION_MGR|%CLIENT_ORCH|%DOT1X|%APMGR|%CLIENT_EXCLUSION|%SEC-[0-9]-IPACCESSLOGS|%SNMP-[0-9]-AUTHFAIL|%SYS-[0-9]-CONFIG_I).*"
-      outputTopic: "rcc.log.ciscoiso.out"
+      outputTopic: "syslog.ciscoiso.out"

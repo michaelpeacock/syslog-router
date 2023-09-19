@@ -9,11 +9,11 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
-	<groupId>mil.army.rcce</groupId>
+	<groupId>io.confluent</groupId>
 	<artifactId>kstreamrouter</artifactId>
 	<version>1.0</version>
 	<name>kstreamrouter</name>
-	<description>RCCE Log Message Routing Application. Kafka Streams project with Spring Boot</description>
+	<description>Log Message Routing Application. Kafka Streams project with Spring Boot</description>
 
 	<properties>
 		<java.version>11</java.version>

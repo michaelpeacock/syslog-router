@@ -54,7 +54,7 @@ Items within the list are separated by the dash (`-`) symbol. To add a new regex
 ```
 -
     regEx: ".*%ASA.*"
-    outputTopic: "rcc.log.ciscoasa.out"
+    outputTopic: syslog.ciscoasa.out"
 ```
 
 ***!!! IMPORTANT: All output topics, including the default output topic, should be created prior to running the streams application !!!***
