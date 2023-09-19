@@ -4,19 +4,19 @@ The kstreamsrouter application is a Kafka Streams application that take an input
 Confluent Syslog Connector and routes the data to sub-topics based on a set of regex rules.
 Additionally, you have the option to add any custom fields to the routed topic data.
 
-There are two configuration files that need to be updated for your environment: `application.yaml`
+There are two configuration files that need to be updated for your environment: `application.properties`
 and `routingconfig.yaml`. Both files are located in the `config` directory.
 
 ### Application Configuration
-The `application.yaml` file contains all the properties specific to the application including input
+The `application.properties` file contains all the properties specific to the application including input
 topic, security settings, and logging.
 
 ![application config file](images/sample_application_config.png)
 
 The following fields should be modified for your environment:
-* line 5 `dynamicRouteSyslogMessages-in-0` - input syslog topic
-* lines 18-26 - security settings
-* line 27 `broker` - list of comma separated Confluent brokers
+* line 2 `boostrap.servers` - list of comma separated Confluent brokers
+* line 3 `schema.registry` - schema registry URL and port
+* lines 6-11 - security settings
 * line 35 - logging level
 
 ### Routing Configuration
@@ -41,9 +41,11 @@ Items within the list are separated by the dash (`-`) symbol. To add a new custo
 ```
 
 #### Routing
+The input topic is your raw syslog topic and can be updated by the `default.inputTopic` variable.
+
 The routing works by applying a regex pattern to the topic. When a match is found, the data will get
 routed to the output topic defined in `outputTopic`. If no match is found, the data will get routed 
-to the default topic defined in `default.topic`. You can change the value of `default.topic` (line
+to the default topic defined in `default.outputTopic`. You can change the value of `default.outputTopic` (line
 12 in the sample config) to anything you want.
 
 Items within the list are separated by the dash (`-`) symbol. To add a new regex pattern, add a
@@ -54,6 +56,8 @@ Items within the list are separated by the dash (`-`) symbol. To add a new regex
     regEx: ".*%ASA.*"
     outputTopic: "rcc.log.ciscoasa.out"
 ```
+
+***!!! IMPORTANT: All output topics, including the default output topic, should be created prior to running the streams application !!!***
 
 ### Running the Application
 There is a script called `kstreams-router.sh` that will launch the Kafka Streams application. It is

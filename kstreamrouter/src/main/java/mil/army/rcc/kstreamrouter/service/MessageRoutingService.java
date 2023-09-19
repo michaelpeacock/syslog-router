@@ -4,12 +4,25 @@ package mil.army.rcc.kstreamrouter.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.Properties;
+import javax.annotation.PostConstruct;
+
 import mil.army.rcc.kstreamrouter.config.CustomFieldsConfig;
+import mil.army.rcc.kstreamrouter.config.RouterProperties;
 import mil.army.rcc.kstreamrouter.config.RoutingConfig;
 import mil.army.rcc.kstreamrouter.model.CustomFields;
+import mil.army.rcc.kstreamrouter.model.JsonUtils;
 import mil.army.rcc.kstreamrouter.model.RoutingRule;
+
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.Topology;
+import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.streams.processor.TopicNameExtractor;
@@ -17,13 +30,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.kafka.support.serializer.JsonSerde;
 import org.springframework.stereotype.Service;
 
 @Service
 public class MessageRoutingService {
-
     private static final Logger logger = LoggerFactory.getLogger(MessageRoutingService.class);
 
     @Autowired
@@ -32,9 +42,44 @@ public class MessageRoutingService {
     @Autowired
     CustomFieldsConfig customFields;
 
-    @Value("${routing.default.topic}")
-    private String defaultRoutingTopicName;
+    @Autowired
+    RouterProperties routerProperties;
 
+    @Value("${routing.default.inputTopic}")
+    private String inputTopic;
+ 
+    @Value("${routing.default.outputTopic}")
+    private String defaultOutputTopic;
+
+    private KafkaStreams streams;
+    private AdminClient client = null;
+    KStream<String, JsonNode> kStream = null;
+  
+
+    @PostConstruct
+    private void initialize() {
+        System.out.println("initializing streams app");
+        Properties properties = new Properties(routerProperties.getProperties());
+        properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        properties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
+        properties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
+        properties.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, 1000);
+
+        try {
+            client = AdminClient.create(properties);
+        } catch (KafkaException e) {
+            logger.error(e.toString());
+        }
+        
+        Topology topology = createTopology();
+        streams = new KafkaStreams(topology, routerProperties.getProperties());
+
+        streams.cleanUp();
+        streams.start();
+
+        // shutdown hook to correctly close the streams application
+        Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
+    }
 
     /*
      Function to route String messages based on
@@ -45,14 +90,16 @@ public class MessageRoutingService {
 
         NOTE:: Output Topics need to be created outside this application.
      */
-    @Bean
-    public Consumer<KStream<String, JsonNode>> dynamicRouteSyslogMessages() {
+    public Topology createTopology() {
+        StreamsBuilder builder = new StreamsBuilder();
+        kStream = builder.stream(inputTopic,
+            Consumed.with(Serdes.String(), JsonUtils.getJsonSerde()));
 
-        return event -> {
-            event.peek((k, v) -> logger.debug("Consumed Message::: " + " Key="+k + " Value=" + v.toString()))
-                .mapValues((v) -> addCustomFileds(v))
-                .to(syslogTopicNameExtractor, Produced.with(Serdes.String(), new JsonSerde<>(JsonNode.class)));
-        };
+        kStream.peek((k, v) -> System.out.println("Consumed Message::: " + " Key="+k + " Value=" + v))
+            .mapValues((v) -> addCustomFileds(v))
+            .to(syslogTopicNameExtractor, Produced.with(Serdes.String(), JsonUtils.getJsonSerde()));
+
+        return builder.build();
     }
 
     /*
@@ -90,7 +137,7 @@ public class MessageRoutingService {
 
         if(null == outTopic) {
             logger.trace("No Matching Pattern Found for Event...Routing to default output topic");
-            outTopic = defaultRoutingTopicName;
+            outTopic = defaultOutputTopic;
         }
 
         logger.debug("Event is being routed to Output Topic:::" + outTopic);

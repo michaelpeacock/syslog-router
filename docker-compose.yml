@@ -90,6 +90,15 @@ services:
   #     CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
   #     CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
   #     CONNECT_LOG4J_LOGGERS: org.apache.zookeeper=ERROR,org.I0Itec.zkclient=ERROR,org.reflections=ERROR
+  #   command:
+  #     - bash
+  #     - -c
+  #     - |
+  #       echo "Installing Connector"
+  #       confluent-hub install --no-prompt confluentinc/kafka-connect-syslog:1.5.3
+  #       #
+  #       echo "Launching Kafka Connect worker"
+  #       /etc/confluent/docker/run
 
   control-center:
     image: confluentinc/cp-enterprise-control-center:latest

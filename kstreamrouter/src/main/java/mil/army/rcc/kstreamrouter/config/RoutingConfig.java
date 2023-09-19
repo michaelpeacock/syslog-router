@@ -11,7 +11,7 @@ import javax.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.List;
 
-@Validated
+//@Validated
 @Configuration
 @ConfigurationProperties(prefix = "routing")
 public class RoutingConfig {

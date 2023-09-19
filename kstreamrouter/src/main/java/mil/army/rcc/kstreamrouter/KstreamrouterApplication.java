@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class KstreamrouterApplication {
 
 	public static void main(String[] args) {
+		System.out.println("in main");
 		SpringApplication.run(KstreamrouterApplication.class, args);
 	}
 

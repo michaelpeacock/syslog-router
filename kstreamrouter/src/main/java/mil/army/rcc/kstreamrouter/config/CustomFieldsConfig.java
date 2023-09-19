@@ -7,9 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.validation.annotation.Validated;
 
-@Validated
+//@Validated
 @Configuration
 @ConfigurationProperties(prefix = "custom")
 public class CustomFieldsConfig {
