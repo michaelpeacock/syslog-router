@@ -1,18 +1,19 @@
-package mil.army.rcc.kstreamrouter.service;
+package io.confluent.kstreamrouter.service;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import io.confluent.kstreamrouter.config.CustomFieldsConfig;
+import io.confluent.kstreamrouter.config.RouterProperties;
+import io.confluent.kstreamrouter.config.RoutingConfig;
+import io.confluent.kstreamrouter.model.CustomFields;
+import io.confluent.kstreamrouter.model.JsonUtils;
+import io.confluent.kstreamrouter.model.RoutingRule;
+
 import java.util.List;
 import java.util.Properties;
 import javax.annotation.PostConstruct;
-
-import mil.army.rcc.kstreamrouter.config.CustomFieldsConfig;
-import mil.army.rcc.kstreamrouter.config.RouterProperties;
-import mil.army.rcc.kstreamrouter.config.RoutingConfig;
-import mil.army.rcc.kstreamrouter.model.CustomFields;
-import mil.army.rcc.kstreamrouter.model.JsonUtils;
-import mil.army.rcc.kstreamrouter.model.RoutingRule;
 
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.consumer.ConsumerConfig;

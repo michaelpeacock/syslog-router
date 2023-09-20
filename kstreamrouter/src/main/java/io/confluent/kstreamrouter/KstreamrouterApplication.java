@@ -1,4 +1,4 @@
-package mil.army.rcc.kstreamrouter;
+package io.confluent.kstreamrouter;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -17,7 +17,7 @@
  * under the License.    
  */
 
-package mil.army.rcc.kstreamrouter.config;
+package io.confluent.kstreamrouter.config;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,4 +1,4 @@
-package mil.army.rcc.kstreamrouter.model;
+package io.confluent.kstreamrouter.model;
 
 import javax.validation.constraints.NotNull;
 

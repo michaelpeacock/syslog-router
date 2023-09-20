@@ -1,11 +1,12 @@
-package mil.army.rcc.kstreamrouter.config;
+package io.confluent.kstreamrouter.config;
 
-import mil.army.rcc.kstreamrouter.model.RoutingRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
+
+import io.confluent.kstreamrouter.model.RoutingRule;
 
 import javax.validation.constraints.NotEmpty;
 import java.util.ArrayList;

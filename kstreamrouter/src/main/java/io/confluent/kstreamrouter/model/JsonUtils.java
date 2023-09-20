@@ -17,7 +17,7 @@
  * under the License.    
  */
 
-package mil.army.rcc.kstreamrouter.model;
+package io.confluent.kstreamrouter.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;

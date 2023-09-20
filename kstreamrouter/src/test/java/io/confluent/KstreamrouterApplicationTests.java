@@ -1,9 +1,10 @@
-package mil.army.rcc.kstreamrouter;
+package io.confluent;
 
-import mil.army.rcc.kstreamrouter.config.RoutingConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import io.confluent.kstreamrouter.config.RoutingConfig;
 
 //@SpringBootTest
 class KstreamrouterApplicationTests {

@@ -1,12 +1,14 @@
-package mil.army.rcc.kstreamrouter.config;
+package io.confluent.kstreamrouter.config;
 
 import java.util.ArrayList;
 import java.util.List;
-import mil.army.rcc.kstreamrouter.model.CustomFields;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+
+import io.confluent.kstreamrouter.model.CustomFields;
 
 //@Validated
 @Configuration
