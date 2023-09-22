@@ -11,6 +11,9 @@ import io.confluent.kstreamrouter.model.CustomFields;
 import io.confluent.kstreamrouter.model.JsonUtils;
 import io.confluent.kstreamrouter.model.RoutingRule;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import javax.annotation.PostConstruct;
@@ -55,7 +58,7 @@ public class MessageRoutingService {
     private KafkaStreams streams;
     private AdminClient client = null;
     KStream<String, JsonNode> kStream = null;
-  
+    private Collection<String> topicList = new ArrayList<>();
 
     @PostConstruct
     private void initialize() {
@@ -72,6 +75,8 @@ public class MessageRoutingService {
             logger.error(e.toString());
         }
         
+        topicList = Arrays.asList(inputTopic.split("\\s*,\\s*"));
+
         Topology topology = createTopology();
         streams = new KafkaStreams(topology, routerProperties.getProperties());
 
@@ -93,7 +98,7 @@ public class MessageRoutingService {
      */
     public Topology createTopology() {
         StreamsBuilder builder = new StreamsBuilder();
-        kStream = builder.stream(inputTopic,
+        kStream = builder.stream(topicList,
             Consumed.with(Serdes.String(), JsonUtils.getJsonSerde()));
 
         kStream.peek((k, v) -> System.out.println("Consumed Message::: " + " Key="+k + " Value=" + v))

@@ -19,6 +19,7 @@
 
 package io.confluent.kstreamrouter.config;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -33,7 +34,7 @@ public class RouterProperties {
 
     @PostConstruct
     private void initialize() {
-         try (InputStream is = getClass().getClassLoader().getResourceAsStream("application.properties")) {
+         try (InputStream is = new FileInputStream("config/application.properties")) {
             properties.load(is);
             System.out.println(properties.stringPropertyNames());
         } catch (IOException e) {
