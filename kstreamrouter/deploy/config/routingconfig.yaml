@@ -1,0 +1,49 @@
+routing:
+  default:
+    inputTopic: syslog
+    inputTopicPatternField: "rawMessage"
+    outputTopic: syslog-unknown
+    outputAllFields: false
+  rules:
+    -
+      regEx: ".*%ASA.*"
+      outputTopic: "syslog-ips-cisco-asa"
+    -
+      regEx: ".*NetScreen.*"
+      outputTopic: "syslog-fw-netscreen"
+    -
+      regEx: ".*AuditNotification.*"
+      outputTopic: "syslog-misc-devices"
+    -
+      regEx: ".*%asa.*"
+      outputTopic: "syslog-ips-cisco-asa"
+
+custom:
+  customFields:
+    -
+      name: "name"
+      value: "My Name"
+    -
+      name: "site"
+      value: "My Site"
+
+fieldmapping:
+  mappings:
+    -
+      currentName: "rawMessage"
+      mappedName: "event.original"
+    -
+      currentName: "remoteAddress"
+      mappedName: "log.syslog.hostname"
+    -
+      currentName: "facility"
+      mappedName: "log.syslog.facility.code"
+    -
+      currentName: "processId"
+      mappedName: "log.syslog.procid"
+    -
+      currentName: "technology"
+      mappedName: "log.syslog.appname"
+    -
+      currentName: "timestamp"
+      mappedName: "@timestamp"

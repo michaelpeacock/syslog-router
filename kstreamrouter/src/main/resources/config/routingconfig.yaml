@@ -1,0 +1,42 @@
+routing:
+  default:
+    inputTopic: syslog
+    outputTopic: syslog-unknown
+    outputAllFields: false
+  rules:
+    -
+      regEx: ".*%FTD-6-43000[1-5].*"
+      outputTopic: "syslog-ips-cisco"
+    -
+      regEx: ".*%FTD-6-302014.*"
+      outputTopic: "syslog-ips-other"
+
+custom:
+  customFields:
+    -
+      name: "name"
+      value: "My Name"
+    -
+      name: "site"
+      value: "My Site"
+
+fieldmapping:
+  mappings:
+    -
+      currentName: "rawMessage"
+      mappedName: "event.original"
+    -
+      currentName: "remoteAddress"
+      mappedName: "log.syslog.hostname"
+    -
+      currentName: "facility"
+      mappedName: "log.syslog.facility.code"
+    -
+      currentName: "processId"
+      mappedName: "log.syslog.procid"
+    -
+      currentName: "technology"
+      mappedName: "log.syslog.appname"
+    -
+      currentName: "timestamp"
+      mappedName: "@timestamp"

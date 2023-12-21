@@ -2,12 +2,16 @@ package io.confluent.kstreamrouter.service;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import io.confluent.kstreamrouter.KstreamrouterApplication;
 import io.confluent.kstreamrouter.config.CustomFieldsConfig;
+import io.confluent.kstreamrouter.config.FieldMappingConfig;
 import io.confluent.kstreamrouter.config.RouterProperties;
 import io.confluent.kstreamrouter.config.RoutingConfig;
 import io.confluent.kstreamrouter.model.CustomFields;
+import io.confluent.kstreamrouter.model.FieldMapping;
 import io.confluent.kstreamrouter.model.JsonUtils;
 import io.confluent.kstreamrouter.model.RoutingRule;
 
@@ -16,6 +20,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
+import java.util.regex.Pattern;
+
 import javax.annotation.PostConstruct;
 
 import org.apache.kafka.clients.admin.AdminClient;
@@ -34,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringApplication;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -47,18 +54,28 @@ public class MessageRoutingService {
     CustomFieldsConfig customFields;
 
     @Autowired
+    FieldMappingConfig fieldMappings;
+
+    @Autowired
     RouterProperties routerProperties;
 
     @Value("${routing.default.inputTopic}")
     private String inputTopic;
  
+    @Value("${routing.default.inputTopicPatternField}")
+    private String inputTopicPatternField;
+
     @Value("${routing.default.outputTopic}")
     private String defaultOutputTopic;
 
+    @Value("#{new Boolean('${routing.default.outputAllFields:false}')}")
+    private Boolean outputAllFields;
+
     private KafkaStreams streams;
     private AdminClient client = null;
-    KStream<String, JsonNode> kStream = null;
     private Collection<String> topicList = new ArrayList<>();
+    private ObjectMapper mapper = new ObjectMapper();
+
 
     @PostConstruct
     private void initialize() {
@@ -75,6 +92,13 @@ public class MessageRoutingService {
             logger.error(e.toString());
         }
         
+        // check to see if the attribute in the input topic is being remapped
+        for (FieldMapping field : this.fieldMappings.getMappings()) {
+            if (field.getCurrentName().matches(inputTopicPatternField)) {
+                inputTopicPatternField = field.getMappedName();
+            }
+        } 
+
         topicList = Arrays.asList(inputTopic.split("\\s*,\\s*"));
 
         Topology topology = createTopology();
@@ -98,11 +122,12 @@ public class MessageRoutingService {
      */
     public Topology createTopology() {
         StreamsBuilder builder = new StreamsBuilder();
-        kStream = builder.stream(topicList,
+        KStream<String, JsonNode> kStream = builder.stream(topicList,
             Consumed.with(Serdes.String(), JsonUtils.getJsonSerde()));
 
-        kStream.peek((k, v) -> System.out.println("Consumed Message::: " + " Key="+k + " Value=" + v))
-            .mapValues((v) -> addCustomFileds(v))
+        kStream 
+            //.peek((k, v) -> System.out.println("Consumed Message::: " + " Key="+k + " Value=" + v))
+            .mapValues((v) -> updateSyslogValues(v))
             .to(syslogTopicNameExtractor, Produced.with(Serdes.String(), JsonUtils.getJsonSerde()));
 
         return builder.build();
@@ -112,14 +137,28 @@ public class MessageRoutingService {
        This function will iterate over the CustomFields and add the name/value pairs set in the
        routingconfig.yaml file.
      */
-    private JsonNode addCustomFileds(JsonNode syslogValues) {
-        JsonNode updatedValues = syslogValues;
+    private JsonNode updateSyslogValues(JsonNode syslogValues) {
+        JsonNode jsonNode = this.mapper.createObjectNode();
 
-        for (CustomFields custom : customFields.getCustomFields()) {
-            ((ObjectNode) updatedValues).put(custom.getName(), custom.getValue());
+        if (this.outputAllFields.booleanValue() == true)
+            jsonNode = syslogValues; 
+        
+        for (FieldMapping field : this.fieldMappings.getMappings()) {
+            if (syslogValues.has(field.getCurrentName())) {
+                JsonNode fieldValue = syslogValues.get(field.getCurrentName());
+                if (jsonNode.has(field.getCurrentName())) {
+                    ((ObjectNode)jsonNode).remove(field.getCurrentName()); 
+                }
+                
+                ((ObjectNode)jsonNode).put(field.getMappedName(), fieldValue.asText());
+            } 
+        } 
+        
+        for (CustomFields custom : this.customFields.getCustomFields()) {
+            ((ObjectNode)jsonNode).put(custom.getName(), custom.getValue()); 
         }
 
-        return updatedValues;
+        return jsonNode;
     }
 
     /*
@@ -131,23 +170,35 @@ public class MessageRoutingService {
         String outTopic = null;
         //ObjectMapper mapper = new ObjectMapper();
         //SyslogMessage logEventData = mapper.convertValue(logEvent, SyslogMessage.class);
-        logger.trace("Matching Pattern for Event:" + logEvent.toString());
         List<RoutingRule> routingRuleList = routingConfig.getRules();
 
-        for (RoutingRule routingRuleObj : routingRuleList) {
-              if(routingRuleObj.getPattern().matcher(logEvent.get("rawMessage").toString()).matches()) {
-                outTopic = routingRuleObj.getOutputTopic();
-                break;
+        System.out.println("logEvent: " + logEvent);
+        System.out.println("inputTopicPatternField: " + inputTopicPatternField);
+
+        if (logEvent.has(inputTopicPatternField)) {
+            for (RoutingRule routingRuleObj : routingRuleList) {
+                if(routingRuleObj.getPattern().matcher(logEvent.get(inputTopicPatternField).toString()).matches()) {
+                    outTopic = routingRuleObj.getOutputTopic();
+                    break;
+                }
             }
         }
 
         if(null == outTopic) {
-            logger.trace("No Matching Pattern Found for Event...Routing to default output topic");
+            System.out.println("No Matching Pattern Found for Event...Routing to default output topic");
             outTopic = defaultOutputTopic;
         }
 
-        logger.debug("Event is being routed to Output Topic:::" + outTopic);
+        System.out.println("Event is being routed to Output Topic:" + outTopic);
         return outTopic;
     };
 
+
+    public static void main(String[] args) {
+		System.out.println("in main");
+        Pattern pattern = Pattern.compile(".*NetScreen.*");
+		if(pattern.matcher((": NetScreen: EventPriority: ").toString()).matches()) {
+            System.out.println("match found");
+        }
+	}
 }
