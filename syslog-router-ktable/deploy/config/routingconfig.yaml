@@ -1,0 +1,42 @@
+topic:
+  settings:
+    inputTopics: "syslog" #list of input topics
+    inputTableTopic: "asset-inventory"
+    inputTopicCompareField: "remoteAddress"
+
+    outputTopicFormat: "rcc-syslog-" #format of output topic
+    outputTopicAppendField: "technology" #field from input table to append to output topic
+    outputTopicAppendUnknown: "unknown" #name to append to output topic when match is not found
+    outputTopicIncludeFields: "owner" #comma separated fields to add from the input table
+    outputAllFields: true
+    #inputTopicPatternField: rawMessage
+    
+fieldmapping:
+  mappings:
+    -
+      currentName: "rawMessage"
+      mappedName: "event.original"
+    -
+      currentName: "remoteAddress"
+      mappedName: "log.syslog.hostname"
+    -
+      currentName: "facility"
+      mappedName: "log.syslog.facility.code"
+    -
+      currentName: "processId"
+      mappedName: "log.syslog.procid"
+    -
+      currentName: "technology"
+      mappedName: "log.syslog.appname"
+    -
+      currentName: "timestamp"
+      mappedName: "@timestamp"
+    -
+      currentName: "owner"
+      mappedName: "organization.name"
+
+custom:
+  customFields:
+    -
+      name: "tags"
+      value: "RCCP"
