@@ -158,7 +158,7 @@ public class MessageRoutingService {
                     logger.debug("asset is null");
                     ((ObjectNode)syslog).put(topicData.getOutputTopicAppendField(), topicData.getOutputTopicAppendUnknown());
                 } else {
-                    logger.info("asset::: " + asset);
+                    logger.debug("asset::: " + asset);
                     ((ObjectNode)syslog).put(topicData.getOutputTopicAppendField(), 
                         asset.get(topicData.getOutputTopicAppendField()).asText());
 
@@ -171,7 +171,7 @@ public class MessageRoutingService {
                         });
                     }
                 }
-                logger.info("syslog::: " + syslog);
+                logger.debug("syslog::: " + syslog);
                 return syslog;
             }, Joined.with((Serde)Serdes.String(), (Serde)JsonUtils.getJsonSerde(), null))
             .map((k, v) -> KeyValue.pair(null, (Object)this.updateSyslogValues(JsonUtils.toJsonNode(v))))
@@ -220,7 +220,7 @@ public class MessageRoutingService {
             }
         }
         String outTopic = topicData.getOutputTopicFormat() + syslog.get(appendField).asText();
-        logger.info("Event is being routed to Output Topic:::" + outTopic);
+        logger.debug("Event is being routed to Output Topic:::" + outTopic);
         return outTopic;
     };
 
