@@ -1,6 +1,7 @@
 topic:
   settings:
     inputTopics: "syslog" #list of input topics
+    inputTopicFormat: "json" #json or avro
     inputTableTopic: "asset-inventory"
     inputTopicCompareField: "remoteAddress"
 
@@ -9,7 +10,6 @@ topic:
     outputTopicAppendUnknown: "unknown" #name to append to output topic when match is not found
     outputTopicIncludeFields: "owner" #comma separated fields to add from the input table
     outputAllFields: false
-    #inputTopicPatternField: rawMessage
     
 fieldmapping:
   mappings:
