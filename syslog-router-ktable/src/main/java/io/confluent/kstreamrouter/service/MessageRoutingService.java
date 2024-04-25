@@ -106,18 +106,21 @@ public class MessageRoutingService {
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public Topology createTopology() {
-        ObjectMapper mapper = new ObjectMapper();
         StreamsBuilder builder = new StreamsBuilder();
         TopicFields topicData =  topicFields.getSettings();
         
-        KTable<String, String> assetInventoryTable = builder.table(topicData.getInputTableTopic(),
-            Consumed.with(Serdes.String(), Serdes.String()));
-        KStream<String, GenericRecord> kStream = builder.stream(topicList);
+        KTable<String, JsonNode> assetInventoryTable = builder.table(topicData.getInputTableTopic(),
+            Consumed.with(Serdes.String(), JsonUtils.getJsonSerde()));
+        
+        KStream<String, GenericRecord> kStreamAvroKStream = null;
+        KStream<String, JsonNode> kStreamJsonStream = null;
+        KStream<String, JsonNode> kStream = null;
+        
 
         // The topology will join the stream with a ktable, when doing a stream-table join, the key
         // of the message is evaluated with the key of the ktable. The following is done in the
         // topology:
-        // - map - adds the key to the message of the stream
+        // - map - adds the key to the message of the stream and converts to JSON (if needed)
         // - leftJoin 
         //     - evaluates the key of the stream vs. the ktable key
         //     - if no match is found (asset is null), then a field is added to the stream (i.e. unknown)
@@ -125,7 +128,10 @@ public class MessageRoutingService {
         //     - optionally, additional fields can be added to the stream from the ktable (tableFields)
         // - map - another map is done to remove the key from the stream (prevents overloading a partition)
         // - to - routes the stream to a new output topic based on the fields in the syslog message
-        kStream 
+        if (topicFields.getSettings().getInputTopicFormat().matches("avro")) {
+            kStreamAvroKStream = builder.stream(topicList);
+            
+            kStream = kStreamAvroKStream 
             //.peek((k, v) -> logger.debug("Consumed Message:::  Key=" + k + " Value=" + v.toString()))
             .map((k, v) -> {
                 String newKey = "\"" + v.get(topicData.getInputTopicCompareField()) + "\"";
@@ -134,37 +140,43 @@ public class MessageRoutingService {
                 }
                 catch (JsonProcessingException e) {
                     throw new RuntimeException(e);
-                }})
+                }});
+        } else {
+            kStreamJsonStream = builder.stream(topicList, 
+                Consumed.with(Serdes.String(), JsonUtils.getJsonSerde()));
+
+            kStream = kStreamJsonStream
+                .map((k, v) -> {
+                    String newKey = "\"" + v.get(topicData.getInputTopicCompareField()).asText() + "\"";
+                    return KeyValue.pair(newKey, v);
+                });
+        }
+
+        kStream
             .leftJoin(assetInventoryTable, (syslog, asset) -> {
                 if (asset == null) {
                     logger.debug("asset is null");
                     ((ObjectNode)syslog).put(topicData.getOutputTopicAppendField(), topicData.getOutputTopicAppendUnknown());
                 } else {
-                    logger.debug("asset::: " + asset);
-                        JsonNode assetJson;
-                        try {
-                            assetJson = this.mapper.readTree(asset);
-                            ((ObjectNode)syslog).put(topicData.getOutputTopicAppendField(), 
-                                assetJson.get(topicData.getOutputTopicAppendField()).asText());
+                    logger.info("asset::: " + asset);
+                    ((ObjectNode)syslog).put(topicData.getOutputTopicAppendField(), 
+                        asset.get(topicData.getOutputTopicAppendField()).asText());
 
-                            //include any table fields
-                            if (tableFields.size() != 0) {
-                                tableFields.forEach((field) -> {
-                                    if (assetJson.has(field)) {
-                                       ((ObjectNode)syslog).put(field, assetJson.get(field).asText());
-                                    }
-                                });
+                    //include any table fields
+                    if (tableFields.size() != 0) {
+                        tableFields.forEach((field) -> {
+                            if (asset.has(field)) {
+                                ((ObjectNode)syslog).put(field, asset.get(field).asText());
                             }
-                        } catch (JsonProcessingException e) {
-                            e.printStackTrace();
-                            ((ObjectNode)syslog).put(topicData.getOutputTopicAppendField(), topicData.getOutputTopicAppendUnknown());
-                        }
+                        });
                     }
+                }
                 logger.info("syslog::: " + syslog);
                 return syslog;
             }, Joined.with((Serde)Serdes.String(), (Serde)JsonUtils.getJsonSerde(), null))
             .map((k, v) -> KeyValue.pair(null, (Object)this.updateSyslogValues(JsonUtils.toJsonNode(v))))
             .to(this.syslogTopicNameExtractor, Produced.valueSerde((Serde)JsonUtils.getJsonSerde()));
+
 
         return builder.build();
     }

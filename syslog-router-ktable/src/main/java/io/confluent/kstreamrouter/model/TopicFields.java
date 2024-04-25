@@ -7,6 +7,9 @@ public class TopicFields {
   private String inputTopics;
 
   @NotNull
+  private String inputTopicFormat;
+
+  @NotNull
   private String inputTopicCompareField;
 
   @NotNull
@@ -32,6 +35,14 @@ public class TopicFields {
 
   public void setInputTopics(String inputTopics) {
     this.inputTopics = inputTopics;
+  }
+  
+  public String getInputTopicFormat() {
+    return inputTopicFormat;
+  }
+
+  public void setInputTopicFormat(String inputTopicFormat) {
+    this.inputTopicFormat = inputTopicFormat;
   }
 
   public String getInputTableTopic() {
