@@ -20,6 +20,7 @@
 package io.confluent.kstreamrouter.config;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -34,12 +35,24 @@ public class RouterProperties {
 
     @PostConstruct
     private void initialize() {
-         try (InputStream is = getClass().getClassLoader().getResourceAsStream("application.properties")) { //new FileInputStream("config/application.properties")) {
+        InputStream is = getClass().getClassLoader().getResourceAsStream("application.properties");;
+        String appLocation = System.getenv("SPRING_CONFIG_LOCATION").replace("file://", "");
+ 
+        try {
+            if (appLocation != null) {
+                 is = new FileInputStream(appLocation + "application.properties");
+            }
+ 
             properties.load(is);
             System.out.println(properties.stringPropertyNames());
-        } catch (IOException e) {
-            e.printStackTrace();
         }
+        catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }  
     }
 
     public Properties getProperties() {

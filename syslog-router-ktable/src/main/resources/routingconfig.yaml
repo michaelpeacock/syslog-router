@@ -1,7 +1,7 @@
 topic:
   settings:
     inputTopics: "syslog" #list of input topics
-    inputTopicFormat: "json" #json or avro
+    inputTopicFormat: "avro" #json or avro
     inputTableTopic: "asset-inventory"
     inputTopicCompareField: "remoteAddress"
 

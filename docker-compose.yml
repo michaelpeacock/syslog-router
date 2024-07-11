@@ -100,49 +100,49 @@ services:
   #       echo "Launching Kafka Connect worker"
   #       /etc/confluent/docker/run
 
-#   control-center:
-#     image: confluentinc/cp-enterprise-control-center:latest
-#     hostname: control-center
-#     container_name: control-center
-#     user: root
-#     depends_on:
-#       - broker
-# #      - schema-registry
-# #      - connect
-# #      - ksqldb-server
-#     ports:
-#       - "9021:9021"
-#     environment:
-#       CONTROL_CENTER_BOOTSTRAP_SERVERS: 'broker:29092'
-#       CONTROL_CENTER_CONNECT_CONNECT-DEFAULT_CLUSTER: 'connect:8083'
-#       # The control center server connects to ksqlDB through the docker network
-#       CONTROL_CENTER_KSQL_KSQLDB1_URL: "http://ksqldb-server:8088"
-#       CONTROL_CENTER_KSQL_KSQLDB1_ADVERTISED_URL: https://localhost:8088
-#       CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
-#       CONTROL_CENTER_REPLICATION_FACTOR: 1
-#       CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
-#       CONTROL_CENTER_MODE_ENABLE: "management"
+  control-center:
+    image: confluentinc/cp-enterprise-control-center:latest
+    hostname: control-center
+    container_name: control-center
+    user: root
+    depends_on:
+      - broker
+#      - schema-registry
+#      - connect
+#      - ksqldb-server
+    ports:
+      - "9021:9021"
+    environment:
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'broker:29092'
+      CONTROL_CENTER_CONNECT_CONNECT-DEFAULT_CLUSTER: 'connect:8083'
+      # The control center server connects to ksqlDB through the docker network
+      CONTROL_CENTER_KSQL_KSQLDB1_URL: "http://ksqldb-server:8088"
+      CONTROL_CENTER_KSQL_KSQLDB1_ADVERTISED_URL: https://localhost:8088
+      CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      CONTROL_CENTER_REPLICATION_FACTOR: 1
+      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
+      CONTROL_CENTER_MODE_ENABLE: "management"
 
-  # ksqldb-server:
-  #   image: confluentinc/cp-ksqldb-server:latest
-  #   hostname: ksqldb-server
-  #   container_name: ksqldb-server
-  #   depends_on:
-  #     - broker
-  #     - connect
-  #   ports:
-  #     - "8088:8088"
-  #   volumes:
-  #     - ./ksqlDB/ksql-extension:/etc/ksql-extension/
-  #   environment:
-  #     KSQL_CONFIG_DIR: "/etc/ksql"
-  #     KSQL_KSQL_EXTENSION_DIR: "/etc/ksql-extension"
-  #     KSQL_BOOTSTRAP_SERVERS: "broker:29092"
-  #     KSQL_HOST_NAME: ksqldb-server
-  #     KSQL_LISTENERS: "http://0.0.0.0:8088"
-  #     KSQL_CACHE_MAX_BYTES_BUFFERING: 0
-  #     KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
-  #     KSQL_KSQL_CONNECT_URL: "http://connect:8083"
-  #     KSQL_KSQL_HIDDEN_TOPICS: '^_.*'
-  #     KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
-  #     KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
+  ksqldb-server:
+    image: confluentinc/cp-ksqldb-server:latest
+    hostname: ksqldb-server
+    container_name: ksqldb-server
+    depends_on:
+      - broker
+#      - connect
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./ksqlDB/ksql-extension:/etc/ksql-extension/
+    environment:
+      KSQL_CONFIG_DIR: "/etc/ksql"
+      KSQL_KSQL_EXTENSION_DIR: "/etc/ksql-extension"
+      KSQL_BOOTSTRAP_SERVERS: "broker:29092"
+      KSQL_HOST_NAME: ksqldb-server
+      KSQL_LISTENERS: "http://0.0.0.0:8088"
+      KSQL_CACHE_MAX_BYTES_BUFFERING: 0
+      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      KSQL_KSQL_CONNECT_URL: "http://connect:8083"
+      KSQL_KSQL_HIDDEN_TOPICS: '^_.*'
+      KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
+      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"

@@ -134,20 +134,34 @@ public class MessageRoutingService {
             kStream = kStreamAvroKStream 
             //.peek((k, v) -> logger.debug("Consumed Message:::  Key=" + k + " Value=" + v.toString()))
             .map((k, v) -> {
-                String newKey = "\"" + v.get(topicData.getInputTopicCompareField()) + "\"";
                 try {
-                    return KeyValue.pair(newKey, this.mapper.readTree(v.toString()));
+                    logger.info("syslog:::topic value: " + v);
+                    if (v.hasField(topicData.getInputTopicCompareField())) {
+                        String newKey = "\"" + v.get(topicData.getInputTopicCompareField()) + "\"";
+                        
+                        return KeyValue.pair(newKey, this.mapper.readTree(v.toString()));
+                    
+                    } else {
+                        logger.info("syslog::: message does not have the compare field " + topicData.getInputTopicCompareField());
+                        return KeyValue.pair(k, this.mapper.readTree(v.toString()));
+                    }
                 }
                 catch (JsonProcessingException e) {
                     throw new RuntimeException(e);
-                }});
+                }
+            });
         } else {
             kStreamJsonStream = builder.stream(topicList, 
                 Consumed.with(Serdes.String(), JsonUtils.getJsonSerde()));
 
             kStream = kStreamJsonStream
                 .map((k, v) -> {
-                    String newKey = "\"" + v.get(topicData.getInputTopicCompareField()).asText() + "\"";
+                    String newKey = k;
+                    if (v.has(topicData.getInputTopicCompareField())) {
+                        newKey = "\"" + v.get(topicData.getInputTopicCompareField()).asText() + "\"";
+                    } else {
+                        logger.info("syslog::: message does not have the compare field " + topicData.getInputTopicCompareField());   
+                    }
                     return KeyValue.pair(newKey, v);
                 });
         }
@@ -155,10 +169,10 @@ public class MessageRoutingService {
         kStream
             .leftJoin(assetInventoryTable, (syslog, asset) -> {
                 if (asset == null) {
-                    logger.debug("asset is null");
+                    logger.info("asset is null");
                     ((ObjectNode)syslog).put(topicData.getOutputTopicAppendField(), topicData.getOutputTopicAppendUnknown());
                 } else {
-                    logger.debug("asset::: " + asset);
+                    logger.info("asset::: " + asset);
                     ((ObjectNode)syslog).put(topicData.getOutputTopicAppendField(), 
                         asset.get(topicData.getOutputTopicAppendField()).asText());
 
