@@ -114,7 +114,13 @@ The ktable topic can be populated by producing to the topic a number of ways. Th
 
 For this example, if the `remoteAddress` matches the primary key in the table `ipv4address`, then the topic would get routed to the `syslog-router` topic based on the `technology` field.
 
+Existing records within the `asset-inventory` topic can be viewed using the ksql editor in Confluent Control Center.  First, ensure you are reading from the beginning of the topic by using *Add query properties* to add the `auto.offset.reset` property, setting the value to `Earliest`. Once that is done, the query below will list the existing records within the `asset-inventory` topic.
 
+```properties
+#View contents of topic
+SELECT * FROM `asset-inventory` EMIT CHANGES;
+```
+![Viewing Table Data](images/query_asset_inventory.png)
 
 ### Running the Application
 There is a script called `kstreams-router.sh` that will launch the Kafka Streams application. It is
